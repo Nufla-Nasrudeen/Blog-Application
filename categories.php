@@ -94,7 +94,32 @@ if (!empty($category_slug)) {
             <div class="categories-grid">
                 <?php while ($cat = $categories_result->fetch_assoc()): ?>
                     <a href="?category=<?php echo urlencode($cat['slug']); ?>" class="category-card">
-                        <div class="category-icon"><?php echo $cat['icon']; ?></div>
+                        <div class="category-icon" 
+                             style="font-size: 40px; 
+                                    transition: transform 0.25s ease, color 0.25s ease; 
+                                    color: #5c3df2;">
+                            <?php 
+                            $icon = trim($cat['icon']);
+                            if (empty($icon) || $icon === '?' || $icon === '??') {
+                                switch (strtolower($cat['name'])) {
+                                    case 'art': $icon = '🎨'; break;
+                                    case 'business': $icon = '💼'; break;
+                                    case 'education': $icon = '📘'; break;
+                                    case 'entertainment': $icon = '🎬'; break;
+                                    case 'food': $icon = '🍔'; break;
+                                    case 'lifestyle': $icon = '🌿'; break;
+                                    case 'science': $icon = '🔬'; break;
+                                    case 'sports': $icon = '⚽'; break;
+                                    case 'technology': $icon = '💻'; break;
+                                    case 'travel': $icon = '✈️'; break;
+                                    default: $icon = '📁'; 
+                                }
+                            }
+                            echo $icon;
+                            ?>
+                        </div>
+
+
                         <h3 class="category-name"><?php echo htmlspecialchars($cat['name']); ?></h3>
                         <p class="category-description"><?php echo htmlspecialchars($cat['description']); ?></p>
                         <div class="category-count"><?php echo $cat['blog_count']; ?> posts</div>

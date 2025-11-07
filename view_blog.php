@@ -84,6 +84,12 @@ if (isset($_SESSION['user_id'])) {
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/enhanced.css">
     <link rel="stylesheet" href="css/advanced.css">
+    <style>
+.blog-post-image img:hover {
+    transform: scale(1.02);
+}
+</style>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
 </head>
 <body>
@@ -92,11 +98,27 @@ if (isset($_SESSION['user_id'])) {
     <div class="container main-content">
         <article class="blog-post">
             <?php if (!empty($post['image_path'])): ?>
-                <div class="blog-post-image">
-                    <img src="<?php echo htmlspecialchars($post['image_path']); ?>" 
-                         alt="<?php echo htmlspecialchars($post['title']); ?>">
-                </div>
-            <?php endif; ?>
+    <div class="blog-post-image" 
+         style="width: 100%; 
+                max-width: 1000px; 
+                margin: 0 auto 25px auto; 
+                border-radius: 15px; 
+                overflow: hidden; 
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                display: flex; 
+                justify-content: center; 
+                background: #f9f9ff;">
+        <img src="<?php echo htmlspecialchars($post['image_path']); ?>" 
+             alt="<?php echo htmlspecialchars($post['title']); ?>"
+             style="width: 100%; 
+                    height: auto; 
+                    object-fit: cover; 
+                    border-radius: 15px; 
+                    display: block; 
+                    transition: transform 0.4s ease;">
+    </div>
+<?php endif; ?>
+
             
             <h1 class="blog-post-title"><?php echo htmlspecialchars($post['title']); ?></h1>
             

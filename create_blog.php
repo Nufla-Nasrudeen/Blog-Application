@@ -110,30 +110,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             
             <!-- Category -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="category_id">🗂️ Category</label>
-                    <select id="category_id" name="category_id">
-                        <option value="">Select a category (optional)</option>
-                        <?php 
-                        $categories_result->data_seek(0); // Reset pointer
-                        while ($cat = $categories_result->fetch_assoc()): 
-                        ?>
-                            <option value="<?php echo $cat['id']; ?>">
-                                <?php echo $cat['icon'] . ' ' . htmlspecialchars($cat['name']); ?>
-                            </option>
-                        <?php endwhile; ?>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="status">📊 Status</label>
-                    <select id="status" name="status">
-                        <option value="published">Published (Visible to all)</option>
-                        <option value="draft">Draft (Save for later)</option>
-                    </select>
-                </div>
-            </div>
+            <!-- Category -->
+<div class="form-row">
+  <div class="form-group">
+    <label for="category_id">🗂️ Category</label>
+    <select id="category_id" name="category_id" 
+      style="width: 100%; 
+             padding: 10px 14px; 
+             border: 1px solid #ccc; 
+             border-radius: 10px; 
+             font-size: 15px; 
+             background: linear-gradient(135deg, #ffffff, #f9f9ff);
+             color: #333;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+             transition: all 0.2s ease;
+             cursor: pointer;">
+      <option value="">Select a category (optional)</option>
+      <?php 
+      $categories_result->data_seek(0);
+      while ($cat = $categories_result->fetch_assoc()): 
+      ?>
+        <option value="<?php echo $cat['id']; ?>">
+          <?php echo $cat['icon'] . ' ' . htmlspecialchars($cat['name']); ?>
+        </option>
+      <?php endwhile; ?>
+    </select>
+  </div>
+
+  <!-- Status -->
+  <div class="form-group">
+    <label for="status">📊 Status</label>
+    <select id="status" name="status"
+      style="width: 100%; 
+             padding: 10px 14px; 
+             border: 1px solid #ccc; 
+             border-radius: 10px; 
+             font-size: 15px; 
+             background: linear-gradient(135deg, #ffffff, #f9f9ff);
+             color: #333;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+             transition: all 0.2s ease;
+             cursor: pointer;">
+      <option value="published">Published (Visible to all)</option>
+      <option value="draft">Draft (Save for later)</option>
+    </select>
+  </div>
+</div>
+
             
             <!-- Featured Image -->
             <div class="form-group">

@@ -7,27 +7,47 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+$user_id = $_SESSION['user_id'];
+
+
+
+
+// --- DASHBOARD STATISTICS ---
+$stats_query = "
+SELECT 
+    (SELECT COUNT(*) FROM blogPost WHERE user_id = ? AND status='published') AS total_posts,
+    (SELECT COUNT(*) FROM blogView WHERE blog_id IN (SELECT id FROM blogPost WHERE user_id = ?)) AS total_views,
+    (SELECT COUNT(*) FROM blogReaction WHERE blog_id IN (SELECT id FROM blogPost WHERE user_id = ?)) AS total_reactions,
+    (SELECT COALESCE(SUM(LENGTH(content) - LENGTH(REPLACE(content, ' ', '')) + 1), 0) FROM blogPost WHERE user_id = ?) AS total_words
+";
+
+$stmt = $conn->prepare($stats_query);
+$stmt->bind_param("iiii", $user_id, $user_id, $user_id, $user_id);
+$stmt->execute();
+$stmt->bind_result($total_posts, $total_views, $total_reactions, $total_words);
+$stmt->fetch();
+$stmt->close();
+
+$stats = [
+    'total_posts' => $total_posts ?? 0,
+    'total_views' => $total_views ?? 0,
+    'total_reactions' => $total_reactions ?? 0,
+    'total_words' => $total_words ?? 0
+];
+
+
 // Fetch user's blog posts
 $stmt = $conn->prepare("SELECT * FROM blogPost WHERE user_id = ? ORDER BY created_at DESC");
-$stmt->bind_param("i", $_SESSION['user_id']);
+$stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
-
-// Get user statistics
-$stats_query = $conn->prepare("SELECT 
-    COUNT(*) as total_posts,
-    SUM(LENGTH(content) - LENGTH(REPLACE(content, ' ', '')) + 1) as total_words
-    FROM blogPost WHERE user_id = ?");
-$stats_query->bind_param("i", $_SESSION['user_id']);
-$stats_query->execute();
-$stats = $stats_query->get_result()->fetch_assoc();
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Blogs - Blog Application</title>
+    <title>My Blogs - BlogHub</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/enhanced.css">
 </head>
@@ -50,7 +70,7 @@ $stats = $stats_query->get_result()->fetch_assoc();
     <div class="container main-content">
         <div class="profile-header">
             <div class="profile-avatar">
-                <?php echo strtoupper(substr($_SESSION['username'], 0, 2)); ?>
+                
             </div>
             <div class="profile-info">
                 <h1 class="profile-name"><?php echo htmlspecialchars($_SESSION['username']); ?>'s Dashboard</h1>
@@ -59,29 +79,42 @@ $stats = $stats_query->get_result()->fetch_assoc();
         </div>
 
         <!-- User Statistics -->
+        
+
         <div class="user-stats">
-            <div class="user-stat-card">
-                <div class="stat-icon">📝</div>
-                <div class="stat-number"><?php echo $stats['total_posts']; ?></div>
-                <div class="stat-label">Total Posts</div>
-            </div>
-            <div class="user-stat-card">
-                <div class="stat-icon">📊</div>
-                <div class="stat-number"><?php echo number_format($stats['total_words']); ?></div>
-                <div class="stat-label">Words Written</div>
-            </div>
-            <div class="user-stat-card">
-                <div class="stat-icon">⭐</div>
-                <div class="stat-number"><?php echo $stats['total_posts'] > 0 ? round($stats['total_words'] / $stats['total_posts']) : 0; ?></div>
-                <div class="stat-label">Avg Words/Post</div>
-            </div>
-        </div>
+  <div class="user-stat-card">
+      <div class="stat-icon">📝</div>
+      <div class="stat-number" style="color:#222;opacity:1;"><?php echo $stats['total_posts']; ?></div>
+      <div class="stat-label">Total Posts</div>
+  </div>
+  <div class="user-stat-card">
+      <div class="stat-icon">👁️</div>
+      <div class="stat-number" style="color:#222;opacity:1;"><?php echo $stats['total_views']; ?></div>
+      <div class="stat-label">Total Views</div>
+  </div>
+  <div class="user-stat-card">
+      <div class="stat-icon">❤️</div>
+      <div class="stat-number" style="color:#222;opacity:1;"><?php echo $stats['total_reactions']; ?></div>
+      <div class="stat-label">Reactions</div>
+  </div>
+  <div class="user-stat-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-number" style="color:#222;opacity:1;"><?php echo $stats['total_words']; ?></div>
+      <div class="stat-label">Words Written</div>
+  </div>
+  <div class="user-stat-card">
+      <div class="stat-icon">⭐</div>
+      <div class="stat-number" style="color:#222;opacity:1;">
+        <?php echo ($stats['total_posts'] > 0) ? round($stats['total_words'] / $stats['total_posts']) : 0; ?>
+      </div>
+      <div class="stat-label">Avg Words/Post</div>
+  </div>
+</div>
+
 
         <div class="page-actions">
             <h2 class="section-title">My Blog Posts</h2>
-            <a href="create_blog.php" class="btn btn-primary">
-                ➕ Create New Post
-            </a>
+            <a href="create_blog.php" class="btn btn-primary">➕ Create New Post</a>
         </div>
         
         <div class="my-blogs-grid">
@@ -97,12 +130,8 @@ $stats = $stats_query->get_result()->fetch_assoc();
                             <div class="my-blog-status">
                                 <?php 
                                 $hours_ago = (time() - strtotime($post['created_at'])) / 3600;
-                                if ($hours_ago < 24) {
-                                    echo '<span class="badge badge-new">🆕 New</span>';
-                                }
-                                if ($post['updated_at'] != $post['created_at']) {
-                                    echo '<span class="badge badge-updated">✏️ Updated</span>';
-                                }
+                                if ($hours_ago < 24) echo '<span class="badge badge-new">🆕 New</span>';
+                                if ($post['updated_at'] != $post['created_at']) echo '<span class="badge badge-updated">✏️ Updated</span>';
                                 ?>
                             </div>
                         </div>
@@ -122,24 +151,14 @@ $stats = $stats_query->get_result()->fetch_assoc();
                         </div>
                         
                         <div class="my-blog-stats">
-                            <span class="word-count">
-                                📊 <?php echo str_word_count($post['content']); ?> words
-                            </span>
-                            <span class="char-count">
-                                <?php echo strlen($post['content']); ?> characters
-                            </span>
+                            <span class="word-count">📊 <?php echo str_word_count($post['content']); ?> words</span>
+                            <span class="char-count"><?php echo strlen($post['content']); ?> characters</span>
                         </div>
                         
                         <div class="my-blog-actions">
-                            <a href="view_blog.php?id=<?php echo $post['id']; ?>" class="action-btn view-btn" title="View">
-                                👁️ View
-                            </a>
-                            <a href="edit_blog.php?id=<?php echo $post['id']; ?>" class="action-btn edit-btn" title="Edit">
-                                ✏️ Edit
-                            </a>
-                            <button onclick="confirmDelete(<?php echo $post['id']; ?>)" class="action-btn delete-btn" title="Delete">
-                                🗑️ Delete
-                            </button>
+                            <a href="view_blog.php?id=<?php echo $post['id']; ?>" class="action-btn view-btn">👁️ View</a>
+                            <a href="edit_blog.php?id=<?php echo $post['id']; ?>" class="action-btn edit-btn">✏️ Edit</a>
+                            <button onclick="confirmDelete(<?php echo $post['id']; ?>)" class="action-btn delete-btn">🗑️ Delete</button>
                         </div>
                     </div>
                 <?php endwhile; ?>
